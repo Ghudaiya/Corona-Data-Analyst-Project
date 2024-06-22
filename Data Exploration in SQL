@@ -1,0 +1,221 @@
+SELECT * FROM `portfolio-project-1-427120.SQL_corona_data.Deaths`
+order by 3,4;
+
+--SELECT * FROM `portfolio-project-1-427120.SQL_corona_data.Vaccination`
+--order by 3,4;
+
+select location, date, total_cases, new_cases, total_deaths, population
+FROM `portfolio-project-1-427120.SQL_corona_data.Deaths`
+order by 1,2;
+
+--total cases vs total deaths
+
+select location, date, total_cases, total_deaths, (total_deaths/total_cases)*100 as death_percentage
+FROM `portfolio-project-1-427120.SQL_corona_data.Deaths`
+order by 1,2;
+
+--total cases vs total population
+
+select location, date, total_cases, population, (total_cases/population)*100 as total_percentage
+FROM `portfolio-project-1-427120.SQL_corona_data.Deaths`
+order by 1,2;
+
+--countries with highest infection rate compared to population
+
+select location, max(total_cases) as HighestInfectionCount, population, max((total_cases/population)*100) as percentpopulationInfected
+FROM `portfolio-project-1-427120.SQL_corona_data.Deaths`
+group by location,population
+order by percentpopulationInfected desc;
+
+--countries with highest death counts
+
+select location, max(cast(total_deaths as int)) as HighestdeathCount, population, max((total_deaths/population)*100) as percentpopulationdied
+FROM `portfolio-project-1-427120.SQL_corona_data.Deaths`
+where continent is not null
+group by location,population
+order by HighestdeathCount desc;
+
+--Global numbers
+
+select date, sum(new_cases) as new_case, sum(cast(new_deaths as int)) as new_death, (sum(cast(new_deaths as int))/sum(new_cases))*100 as death_percentage
+FROM `portfolio-project-1-427120.SQL_corona_data.Deaths`
+where continent is not null
+group by date
+order by 1;
+
+
+--joining deaths table and vaccination table for better insights
+
+select *
+FROM `portfolio-project-1-427120.SQL_corona_data.Deaths` dea
+join `portfolio-project-1-427120.SQL_corona_data.Vaccination` vac 
+on dea.location = vac.location and dea.date = vac.date;
+
+--Total population vs vaccination
+
+select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
+FROM `portfolio-project-1-427120.SQL_corona_data.Deaths` dea
+join `portfolio-project-1-427120.SQL_corona_data.Vaccination` vac 
+on dea.location = vac.location and dea.date = vac.date
+where dea.continent is not null 
+order by 2,3;
+
+--rolling count of total vaccination everyday
+
+select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations, sum(cast(vac.new_vaccinations as int)) over (partition by dea.location order by dea.location, dea.date) as rolling_count
+FROM `portfolio-project-1-427120.SQL_corona_data.Deaths` dea
+join `portfolio-project-1-427120.SQL_corona_data.Vaccination` vac 
+on dea.location = vac.location and dea.date = vac.date
+where dea.continent is not null 
+order by 2,3;
+
+--using cte for using a column we created again
+
+with popvsvac 
+as (
+Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations , SUM(cast(vac.new_vaccinations as int)) over (Partition by dea.location Order by dea.location,
+dea.Date) as rolling_count
+From `portfolio-project-1-427120.SQL_corona_data.Deaths` dea
+Join `portfolio-project-1-427120.SQL_corona_data.Vaccination` vac
+On dea. location = vac. location
+and dea.date = vac.date
+where dea.continent is not null
+)
+Select * ,(rolling_count/population) *100
+From PopvsVac;
+
+--using a temp table
+
+--create table portfolio-project-1-427120.SQL_corona_data.percentpopvaccinated( continent string(255), location string(255), date datetime,population numeric,);
+
+--insert into portfolio-project-1-427120.SQL_corona_data.percentpopvaccinated 
+Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations , SUM(cast(vac.new_vaccinations as int)) over (Partition by dea.location Order by dea.location,
+dea.Date) as rolling_count
+From `portfolio-project-1-427120.SQL_corona_data.Deaths` dea
+Join `portfolio-project-1-427120.SQL_corona_data.Vaccination` vac
+On dea. location = vac. location
+and dea.date = vac.date
+where dea.continent is not null;
+
+--Select * ,(rolling_count/population) *100 From portfolio-project-1-427120.SQL_corona_data.percentpopvaccinated;
+
+
+-- creating view to store data for later visualization
+SELECT * FROM `portfolio-project-1-427120.SQL_corona_data.Deaths`
+order by 3,4;
+
+--SELECT * FROM `portfolio-project-1-427120.SQL_corona_data.Vaccination`
+--order by 3,4;
+
+select location, date, total_cases, new_cases, total_deaths, population
+FROM `portfolio-project-1-427120.SQL_corona_data.Deaths`
+order by 1,2;
+
+--total cases vs total deaths
+
+select location, date, total_cases, total_deaths, (total_deaths/total_cases)*100 as death_percentage
+FROM `portfolio-project-1-427120.SQL_corona_data.Deaths`
+order by 1,2;
+
+--total cases vs total population
+
+select location, date, total_cases, population, (total_cases/population)*100 as total_percentage
+FROM `portfolio-project-1-427120.SQL_corona_data.Deaths`
+order by 1,2;
+
+--countries with highest infection rate compared to population
+
+select location, max(total_cases) as HighestInfectionCount, population, max((total_cases/population)*100) as percentpopulationInfected
+FROM `portfolio-project-1-427120.SQL_corona_data.Deaths`
+group by location,population
+order by percentpopulationInfected desc;
+
+--countries with highest death counts
+
+select location, max(cast(total_deaths as int)) as HighestdeathCount, population, max((total_deaths/population)*100) as percentpopulationdied
+FROM `portfolio-project-1-427120.SQL_corona_data.Deaths`
+where continent is not null
+group by location,population
+order by HighestdeathCount desc;
+
+--Global numbers
+
+select date, sum(new_cases) as new_case, sum(cast(new_deaths as int)) as new_death, (sum(cast(new_deaths as int))/sum(new_cases))*100 as death_percentage
+FROM `portfolio-project-1-427120.SQL_corona_data.Deaths`
+where continent is not null
+group by date
+order by 1;
+
+
+--joining deaths table and vaccination table for better insights
+
+select *
+FROM `portfolio-project-1-427120.SQL_corona_data.Deaths` dea
+join `portfolio-project-1-427120.SQL_corona_data.Vaccination` vac 
+on dea.location = vac.location and dea.date = vac.date;
+
+--Total population vs vaccination
+
+select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
+FROM `portfolio-project-1-427120.SQL_corona_data.Deaths` dea
+join `portfolio-project-1-427120.SQL_corona_data.Vaccination` vac 
+on dea.location = vac.location and dea.date = vac.date
+where dea.continent is not null 
+order by 2,3;
+
+--rolling count of total vaccination everyday
+
+select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations, sum(cast(vac.new_vaccinations as int)) over (partition by dea.location order by dea.location, dea.date) as rolling_count
+FROM `portfolio-project-1-427120.SQL_corona_data.Deaths` dea
+join `portfolio-project-1-427120.SQL_corona_data.Vaccination` vac 
+on dea.location = vac.location and dea.date = vac.date
+where dea.continent is not null 
+order by 2,3;
+
+--using cte for using a column we created again
+
+with popvsvac 
+as (
+Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations , SUM(cast(vac.new_vaccinations as int)) over (Partition by dea.location Order by dea.location,
+dea.Date) as rolling_count
+From `portfolio-project-1-427120.SQL_corona_data.Deaths` dea
+Join `portfolio-project-1-427120.SQL_corona_data.Vaccination` vac
+On dea. location = vac. location
+and dea.date = vac.date
+where dea.continent is not null
+)
+Select * ,(rolling_count/population) *100
+From PopvsVac;
+
+--using a temp table
+
+--create table portfolio-project-1-427120.SQL_corona_data.percentpopvaccinated( continent string(255), location string(255), date datetime,population numeric,);
+
+--insert into portfolio-project-1-427120.SQL_corona_data.percentpopvaccinated 
+Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations , SUM(cast(vac.new_vaccinations as int)) over (Partition by dea.location Order by dea.location,
+dea.Date) as rolling_count
+From `portfolio-project-1-427120.SQL_corona_data.Deaths` dea
+Join `portfolio-project-1-427120.SQL_corona_data.Vaccination` vac
+On dea. location = vac. location
+and dea.date = vac.date
+where dea.continent is not null;
+
+--Select * ,(rolling_count/population) *100 From portfolio-project-1-427120.SQL_corona_data.percentpopvaccinated;
+
+
+-- creating view to store data for later visualization
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
